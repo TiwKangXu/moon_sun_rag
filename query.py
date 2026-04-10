@@ -16,28 +16,40 @@ collection = db.get_collection("finance")
 
 query = "What drove revenue growth?"
 
-docs = retrieve(collection, query)
+docs = retrieve(collection, query, k=20)
 docs = rerank(query, docs)
+
+docs = [d for d in docs if len(d) > 150]
 
 print("\n=== RETRIEVED ===")
 for d in docs:
-    print(d[:200], "\n---")
+    print("\nFULL:\n", d)
 
 context = "\n\n".join(docs)
 
-response = client.chat.completions.create(
-    model="gpt-4o-mini",
-    messages=[
-        {"role": "user", "content": f"""
-Answer ONLY using the context below.
-Be precise with numbers.
-If not found, say 'Not found'.
+prompt = f"""
+You are a financial analyst.
+
+STRICT RULES:
+- Only use information explicitly found in the context.
+- If a number is not present in the context, say "Not found".
+- Do NOT infer, estimate, or use prior knowledge.
+- For every number, quote the exact sentence from the context.
+
+Format:
+- Primary drivers:
+- Supporting evidence (with quotes):
 
 Context:
 {context}
 
 Question: {query}
-"""}
+"""
+
+response = client.chat.completions.create(
+    model="gpt-4o-mini",
+    messages=[
+        {"role": "user", "content": prompt}
     ]
 )
 
