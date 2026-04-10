@@ -6,6 +6,8 @@ import chromadb
 from chromadb.config import Settings
 from openai import OpenAI
 
+from rag.pipeline import get_docs
+
 from rag.retriever import retrieve
 from rag.reranker import rerank
 
@@ -16,10 +18,7 @@ collection = db.get_collection("finance")
 
 query = "What drove revenue growth?"
 
-docs = retrieve(collection, query, k=20)
-docs = rerank(query, docs)
-
-docs = [d for d in docs if len(d) > 150]
+docs = get_docs(collection, query, k=20)
 
 print("\n=== RETRIEVED ===")
 for d in docs:
